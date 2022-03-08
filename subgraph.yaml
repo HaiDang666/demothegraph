@@ -1,0 +1,47 @@
+specVersion: 0.0.1
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: StakingToken
+    network: mumbai
+    source:
+      address: "0xee45aedd2228425757b22f2c5e08f93c0b12afc1"
+      abi: StakingToken
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - ClaimReward
+        - OwnershipTransferred
+        - Paused
+        - RewardAdded
+        - RewardsVaultUpdated
+        - Staked
+        - Unpaused
+        - Unstake
+        - UpdateRewardsDuration
+      abis:
+        - name: StakingToken
+          file: ./abis/StakingToken.json
+      eventHandlers:
+        - event: ClaimReward(indexed address,uint256)
+          handler: handleClaimReward
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: Paused(address)
+          handler: handlePaused
+        - event: RewardAdded(uint256)
+          handler: handleRewardAdded
+        - event: RewardsVaultUpdated(indexed address)
+          handler: handleRewardsVaultUpdated
+        - event: Staked(indexed address,uint256)
+          handler: handleStaked
+        - event: Unpaused(address)
+          handler: handleUnpaused
+        - event: Unstake(indexed address,uint256)
+          handler: handleUnstake
+        - event: UpdateRewardsDuration(uint256)
+          handler: handleUpdateRewardsDuration
+      file: ./src/mapping.ts
