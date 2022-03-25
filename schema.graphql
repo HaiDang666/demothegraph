@@ -1,6 +1,20 @@
-type ExampleEntity @entity {
+type StakingUser @entity {
   id: ID!
-  count: BigInt!
-  user: Bytes! # address
-  reward: BigInt! # uint256
+  stakedAmount: BigInt!
+  createdAtTimestamp: BigInt!
+  updatedAtTimestamp: BigInt!
+}
+
+enum StakingHistoryType {
+  Stake
+  Unstake
+  ClaimReward
+}
+
+type StakingHistory @entity {
+  id: ID!
+  user: StakingUser!
+  amount: BigInt!
+  type: StakingHistoryType!
+  createdAtTimestamp: BigInt!
 }

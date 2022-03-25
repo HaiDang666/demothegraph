@@ -4,10 +4,10 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ haidang666/demothegraph",
-    "create-local": "graph create --node http://localhost:8020/ haidang666/demothegraph",
-    "remove-local": "graph remove --node http://localhost:8020/ haidang666/demothegraph",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 haidang666/demothegraph"
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ haidang666/staking-token",
+    "create-local": "graph create --node http://localhost:8020/ haidang666/staking-token",
+    "remove-local": "graph remove --node http://localhost:8020/ haidang666/staking-token",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 haidang666/staking-token"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.27.0",

@@ -1,92 +1,56 @@
-import { BigInt } from "@graphprotocol/graph-ts"
+import { BigInt, Address } from "@graphprotocol/graph-ts"
 import {
-  StakingToken,
   ClaimReward,
-  OwnershipTransferred,
-  Paused,
-  RewardAdded,
-  RewardsVaultUpdated,
   Staked,
-  Unpaused,
   Unstake,
-  UpdateRewardsDuration
 } from "../generated/StakingToken/StakingToken"
-import { ExampleEntity } from "../generated/schema"
+import { StakingUser, StakingHistory } from "../generated/schema"
 
 export function handleClaimReward(event: ClaimReward): void {
-  // Entities can be loaded from the store using a string ID; this ID
-  // needs to be unique across all entities of the same type
-  let entity = ExampleEntity.load(event.transaction.from.toHex())
+  let user = getUser(event.params.user, event.block.timestamp);
+  let amount = event.params.reward;
 
-  // Entities only exist after they have been saved to the store;
-  // `null` checks allow to create entities on demand
-  if (!entity) {
-    entity = new ExampleEntity(event.transaction.from.toHex())
-
-    // Entity fields can be set using simple assignments
-    entity.count = BigInt.fromI32(0)
-  }
-
-  // BigInt and BigDecimal math are supported
-  entity.count = entity.count + BigInt.fromI32(1)
-
-  // Entity fields can be set based on event parameters
-  entity.user = event.params.user
-  entity.reward = event.params.reward
-
-  // Entities can be written to the store with `.save()`
-  entity.save()
-
-  // Note: If a handler doesn't require existing field values, it is faster
-  // _not_ to load the entity from the store. Instead, create it fresh with
-  // `new Entity(...)`, set the fields that should be updated and save the
-  // entity back to the store. Fields that were not set or unset remain
-  // unchanged, allowing for partial updates to be applied.
-
-  // It is also possible to access smart contracts from mappings. For
-  // example, the contract that has emitted the event can be connected to
-  // with:
-  //
-  // let contract = Contract.bind(event.address)
-  //
-  // The following functions can then be called on this contract to access
-  // state variables and other data:
-  //
-  // - contract.currentTotalRewards(...)
-  // - contract.earned(...)
-  // - contract.lastUpdateTime(...)
-  // - contract.lastUpdated(...)
-  // - contract.owner(...)
-  // - contract.paused(...)
-  // - contract.periodFinish(...)
-  // - contract.rate(...)
-  // - contract.rewardPaid(...)
-  // - contract.rewardPerToken(...)
-  // - contract.rewardPerTokenGlobal(...)
-  // - contract.rewards(...)
-  // - contract.rewardsAdministrator(...)
-  // - contract.rewardsDuration(...)
-  // - contract.rewardsToken(...)
-  // - contract.rewardsVault(...)
-  // - contract.stakedAmountOf(...)
-  // - contract.stakingToken(...)
-  // - contract.totalStakes(...)
+  createHistory(event.transaction.hash.toHexString(), "ClaimReward", amount, user, event.block.timestamp);
 }
 
-export function handleOwnershipTransferred(event: OwnershipTransferred): void {}
+export function handleStaked(event: Staked): void {
+  let user = getUser(event.params.user, event.block.timestamp);
 
-export function handlePaused(event: Paused): void {}
+  user.stakedAmount = user.stakedAmount.plus(event.params.amount);
+  user.updatedAtTimestamp = event.block.timestamp;
+  user.save();
 
-export function handleRewardAdded(event: RewardAdded): void {}
+  createHistory(event.transaction.hash.toHex(), "Stake", event.params.amount, user, event.block.timestamp);
+}
 
-export function handleRewardsVaultUpdated(event: RewardsVaultUpdated): void {}
+export function handleUnstake(event: Unstake): void {
+  let user = getUser(event.params.user, event.block.timestamp);
 
-export function handleStaked(event: Staked): void {}
+  user.stakedAmount = user.stakedAmount.minus(event.params.amount);
+  user.updatedAtTimestamp = event.block.timestamp;
+  user.save();
 
-export function handleUnpaused(event: Unpaused): void {}
+  createHistory(event.transaction.hash.toHex(), "Unstake", event.params.amount, user, event.block.timestamp);
+}
 
-export function handleUnstake(event: Unstake): void {}
 
-export function handleUpdateRewardsDuration(
-  event: UpdateRewardsDuration
-): void {}
+function getUser(address: Address, timestamp: BigInt): StakingUser {
+  let user = StakingUser.load(address.toHexString());
+  if (user == null) {
+    user = new StakingUser(address.toHexString());
+    user.stakedAmount = BigInt.fromI32(0);
+    user.createdAtTimestamp = timestamp;
+    user.save();
+  }
+
+  return user;
+}
+
+function createHistory(hash:string, type: string, amount: BigInt, user: StakingUser, timestamp: BigInt): void {
+  let history = new StakingHistory(hash.toLowerCase());
+  history.amount = amount;
+  history.type = type;
+  history.createdAtTimestamp = timestamp;
+  history.user = user.id;
+  history.save();
+}
